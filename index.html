@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>루이스 구조 드래그 시뮬레이션 (C, N, O, F, Cl)</title>
+    <title>루이스 구조 공유 전자쌍 분자 결합 시뮬레이터 (수평 80px 고정)</title>
     <style>
         body {
             margin: 0;
@@ -12,45 +12,42 @@
             color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             user-select: none;
         }
 
-        /* 설명 텍스트 */
         .info {
             position: absolute;
             top: 20px;
+            width: 100%;
             text-align: center;
             color: #aaaaaa;
             pointer-events: none;
+            z-index: 100;
         }
 
-        /* 원소들이 배치될 컨테이너 */
         #container {
             position: relative;
             width: 100vw;
             height: 100vh;
         }
 
-        /* 원소(알파벳) 스타일 */
+        /* 개별 원자 스타일 */
         .element {
             position: absolute;
             width: 80px;
             height: 80px;
-            font-size: 3.5rem;
+            font-size: 3rem;
             font-weight: bold;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: grab;
             transition: transform 0.1s ease;
+            box-sizing: border-box;
         }
 
         .element:active {
             cursor: grabbing;
-            transform: scale(1.05);
         }
 
         /* 루이스 점(Dot) 공통 스타일 */
@@ -58,27 +55,42 @@
             position: absolute;
             width: 8px;
             height: 8px;
-            background-color: #ff5722; /* 전자는 눈에 띄는 주황색 */
+            background-color: #ff5722; /* 전자 전용 주황색 */
             border-radius: 50%;
         }
 
-        /* --- 루이스 구조 위치 정의 (원소 중심 기준 변위) --- */
-        /* 단일 점 위치 */
+        /* 공유 전자쌍(Shared Pair) 컨테이너 및 도트 스타일 */
+        .shared-bond {
+            position: absolute;
+            width: 30px;
+            height: 16px;
+            pointer-events: none;
+            z-index: 2;
+        }
+        /* 결합 사이에 나란히 찍힐 점 2개 */
+        .shared-bond .bond-dot {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: #ff5722;
+            border-radius: 50%;
+            top: 4px;
+        }
+        .shared-bond .bond-dot.d1 { left: 4px; }
+        .shared-bond .bond-dot.d2 { right: 4px; }
+
+        /* --- 원자 내부 기본 전자 배치 위치 --- */
         .top    { top: -12px; left: 36px; }
         .bottom { bottom: -12px; left: 36px; }
         .left   { left: -12px; top: 36px; }
         .right  { right: -12px; top: 36px; }
 
-        /* 비공유 전자쌍(Pair) 위치 */
         .top-pair-1    { top: -12px; left: 30px; }
         .top-pair-2    { top: -12px; left: 42px; }
-        
         .bottom-pair-1 { bottom: -12px; left: 30px; }
         .bottom-pair-2 { bottom: -12px; left: 42px; }
-        
         .left-pair-1   { left: -12px; top: 30px; }
         .left-pair-2   { left: -12px; top: 42px; }
-
         .right-pair-1  { right: -12px; top: 30px; }
         .right-pair-2  { right: -12px; top: 42px; }
     </style>
@@ -86,107 +98,270 @@
 <body>
 
     <div class="info">
-        <h2>루이스 구조 (Lewis Structure) 드래그</h2>
-        <p>원소 기호(C, N, O, F, Cl)를 마우스로 클릭하고 드래그해 보세요.</p>
+        <h2>루이스 구조 공유 전자쌍 시뮬레이터</h2>
+        <p>조건이 맞으면 원자들이 <b>수평 80px 간격</b>으로 자동 정렬되며 공유 전자쌍이 형성됩니다.</p>
     </div>
 
     <div id="container">
-        <!-- 탄소 (C) : 최외각 전자 4개 -->
-        <div class="element" id="C" style="top: 45%; left: 15%;">
-            C
-            <div class="dot top"></div>
-            <div class="dot bottom"></div>
-            <div class="dot left"></div>
-            <div class="dot right"></div>
-        </div>
-
-        <!-- 질소 (N) : 최외각 전자 5개 -->
-        <div class="element" id="N" style="top: 45%; left: 31%;">
-            N
-            <div class="dot top-pair-1"></div>
-            <div class="dot top-pair-2"></div>
-            <div class="dot bottom"></div>
-            <div class="dot left"></div>
-            <div class="dot right"></div>
-        </div>
-
-        <!-- 산소 (O) : 최외각 전자 6개 -->
-        <div class="element" id="O" style="top: 45%; left: 47%;">
-            O
-            <div class="dot top-pair-1"></div>
-            <div class="dot top-pair-2"></div>
-            <div class="dot bottom-pair-1"></div>
-            <div class="dot bottom-pair-2"></div>
-            <div class="dot left"></div>
-            <div class="dot right"></div>
-        </div>
-
-        <!-- 플루오린 (F) : 최외각 전자 7개 (3쌍 + 1홀전자) -->
-        <div class="element" id="F" style="top: 45%; left: 63%;">
-            F
-            <div class="dot top-pair-1"></div>
-            <div class="dot top-pair-2"></div>
-            <div class="dot bottom-pair-1"></div>
-            <div class="dot bottom-pair-2"></div>
-            <div class="dot left-pair-1"></div>
-            <div class="dot left-pair-2"></div>
-            <div class="dot right"></div>
-        </div>
-
-        <!-- 염소 (Cl) : 최외각 전자 7개 (3쌍 + 1홀전자) -->
-        <div class="element" id="Cl" style="top: 45%; left: 79%;">
-            Cl
-            <div class="dot top-pair-1"></div>
-            <div class="dot top-pair-2"></div>
-            <div class="dot bottom-pair-1"></div>
-            <div class="dot bottom-pair-2"></div>
-            <div class="dot left-pair-1"></div>
-            <div class="dot left-pair-2"></div>
-            <div class="dot right"></div>
-        </div>
+        <!-- 원소 공급처 -->
+        <div class="element origin" data-type="C" style="top: 25%; left: 15%;">C<div class="dot top"></div><div class="dot bottom"></div><div class="dot left"></div><div class="dot right"></div></div>
+        <div class="element origin" data-type="N" style="top: 25%; left: 31%;">N<div class="dot top-pair-1"></div><div class="dot top-pair-2"></div><div class="dot bottom"></div><div class="dot left"></div><div class="dot right"></div></div>
+        <div class="element origin" data-type="O" style="top: 25%; left: 47%;">O<div class="dot top-pair-1"></div><div class="dot top-pair-2"></div><div class="dot bottom-pair-1"></div><div class="dot bottom-pair-2"></div><div class="dot left"></div><div class="dot right"></div></div>
+        <div class="element origin" data-type="F" style="top: 25%; left: 63%;">F<div class="dot top-pair-1"></div><div class="dot top-pair-2"></div><div class="dot bottom-pair-1"></div><div class="dot bottom-pair-2"></div><div class="dot left-pair-1"></div><div class="dot left-pair-2"></div><div class="dot right"></div></div>
+        <div class="element origin" data-type="Cl" style="top: 25%; left: 79%;">Cl<div class="dot top-pair-1"></div><div class="dot top-pair-2"></div><div class="dot bottom-pair-1"></div><div class="dot bottom-pair-2"></div><div class="dot left-pair-1"></div><div class="dot left-pair-2"></div><div class="dot right"></div></div>
     </div>
 
     <script>
-        const elements = document.querySelectorAll('.element');
+        const container = document.getElementById('container');
         let isDragging = false;
-        let currentElement = null;
+        let currentTarget = null; 
+        let dragMode = ""; 
+        
         let offsetX = 0;
         let offsetY = 0;
+        let zIndexCounter = 10;
+        let molecules = [];
 
-        elements.forEach(element => {
-            // 마우스 누를 때 드래그 시작
-            element.addEventListener('mousedown', (e) => {
+        const validMolecules = [
+            { C:1, O:1 }, { C:1, O:2 }, { C:1, N:2 }, { C:1, F:4 }, { C:1, Cl:4 },
+            { N:1, O:1 }, { N:1, O:2 }, { N:2, O:1 }, { N:2, O:4 }, { N:2, O:5 },
+            { N:1, F:3 }, { N:1, Cl:3 }, { O:1, F:2 }, { O:2, F:2 }, { Cl:2, O:1 },
+            { Cl:1, O:2 }, { Cl:2, O:7 }, { Cl:1, F:1 }, { Cl:1, F:3 }, { Cl:1, F:5 }
+        ];
+
+        function initDraggable(el) {
+            el.addEventListener('mousedown', (e) => {
                 isDragging = true;
-                currentElement = element;
+                zIndexCounter++;
+
+                if (el.classList.contains('origin')) {
+                    const clone = el.cloneNode(true);
+                    container.appendChild(clone);
+                    initDraggable(clone);
+                    el.classList.remove('origin');
+                    el.dataset.id = "atom_" + Date.now(); 
+                }
+
+                const parentMolecule = findMoleculeByAtom(el);
                 
-                // 선택한 원소 안에서 마우스가 클릭된 실제 좌표 계산
-                offsetX = e.clientX - element.getBoundingClientRect().left;
-                offsetY = e.clientY - element.getBoundingClientRect().top;
-                
-                // 드래그 중인 원소를 화면 가장 앞으로 가져오기
-                elements.forEach(el => el.style.zIndex = 1);
-                element.style.zIndex = 10;
+                if (parentMolecule) {
+                    dragMode = "molecule";
+                    currentTarget = parentMolecule;
+                    offsetX = e.clientX - parentMolecule.x;
+                    offsetY = e.clientY - parentMolecule.y;
+                    parentMolecule.atoms.forEach(atom => atom.style.zIndex = zIndexCounter);
+                    parentMolecule.bonds.forEach(bond => bond.style.zIndex = zIndexCounter);
+                } else {
+                    dragMode = "element";
+                    currentTarget = el;
+                    offsetX = e.clientX - el.getBoundingClientRect().left;
+                    offsetY = e.clientY - el.getBoundingClientRect().top;
+                    el.style.zIndex = zIndexCounter;
+                }
             });
-        });
+        }
 
-        // 마우스 움직일 때 원소 이동
+        document.querySelectorAll('.element').forEach(el => initDraggable(el));
+
         document.addEventListener('mousemove', (e) => {
-            if (!isDragging || !currentElement) return;
+            if (!isDragging || !currentTarget) return;
 
-            // 마우스 좌표에서 오프셋을 빼서 원소의 새로운 위치 계산
-            const x = e.clientX - offsetX;
-            const y = e.clientY - offsetY;
+            if (dragMode === "element") {
+                const x = e.clientX - offsetX;
+                const y = e.clientY - offsetY;
+                currentTarget.style.left = `${x}px`;
+                currentTarget.style.top = `${y}px`;
+            } 
+            else if (dragMode === "molecule") {
+                const newMolX = e.clientX - offsetX;
+                const newMolY = e.clientY - offsetY;
+                
+                const deltaX = newMolX - currentTarget.x;
+                const deltaY = newMolY - currentTarget.y;
 
-            // 위치 적용
-            currentElement.style.left = `${x}px`;
-            currentElement.style.top = `${y}px`;
+                currentTarget.atoms.forEach(atom => {
+                    const currLeft = parseFloat(atom.style.left);
+                    const currTop = parseFloat(atom.style.top);
+                    atom.style.left = `${currLeft + deltaX}px`;
+                    atom.style.top = `${currTop + deltaY}px`;
+                });
+
+                currentTarget.x = newMolX;
+                currentTarget.y = newMolY;
+                
+                updateBondDots(currentTarget);
+            }
         });
 
-        // 마우스를 떼면 드래그 종료
         document.addEventListener('mouseup', () => {
+            if (isDragging && currentTarget) {
+                checkAndFormMolecules();
+            }
             isDragging = false;
-            currentElement = null;
+            currentTarget = null;
         });
+
+        function findMoleculeByAtom(atom) {
+            return molecules.find(m => m.atoms.includes(atom));
+        }
+
+        function updateBondDots(mol) {
+            mol.bonds.forEach(bond => {
+                const atom1 = document.querySelector(`[data-id="${bond.dataset.from}"]`);
+                const atom2 = document.querySelector(`[data-id="${bond.dataset.to}"]`);
+                if(atom1 && atom2) {
+                    drawSharedDotsBetween(atom1, atom2, bond);
+                }
+            });
+        }
+
+        // 수평 정렬 상태이므로 단순화된 중앙 위치 계산 함수 사용
+        function drawSharedDotsBetween(a, b, bondContainer) {
+            const r1 = a.getBoundingClientRect();
+            const r2 = b.getBoundingClientRect();
+            
+            const x1 = r1.left + r1.width / 2;
+            const y1 = r1.top + r1.height / 2;
+            const x2 = r2.left + r2.width / 2;
+            const y2 = r2.top + r2.height / 2;
+
+            const midX = (x1 + x2) / 2;
+            const midY = (y1 + y2) / 2;
+
+            // 수평 고정이므로 회전(rotate) 처리를 생략하고 완벽한 가로 배치 고정
+            bondContainer.style.left = `${midX - 15}px`; 
+            bondContainer.style.top = `${midY - 8}px`;   
+        }
+
+        function checkAndFormMolecules() {
+            const allAtoms = Array.from(document.querySelectorAll('.element:not(.origin)'));
+            if (allAtoms.length < 2) return;
+
+            let clusters = [];
+            let visited = new Set();
+
+            allAtoms.forEach(atom => {
+                if (visited.has(atom)) return;
+                
+                let cluster = [];
+                let queue = [atom];
+                visited.add(atom);
+
+                while(queue.length > 0) {
+                    let current = queue.shift();
+                    cluster.push(current);
+
+                    const cRect = current.getBoundingClientRect();
+                    const cX = cRect.left + cRect.width / 2;
+                    const cY = cRect.top + cRect.height / 2;
+
+                    allAtoms.forEach(target => {
+                        if (visited.has(target)) return;
+
+                        const tRect = target.getBoundingClientRect();
+                        const tX = tRect.left + tRect.width / 2;
+                        const tY = tRect.top + tRect.height / 2;
+
+                        const dist = Math.sqrt((tX - cX) ** 2 + (tY - cY) ** 2);
+                        if (dist <= 80) { // 기존 결합 허용 범위 조건 유지
+                            visited.add(target);
+                            queue.push(target);
+                        }
+                    });
+                }
+                if (cluster.length >= 2) {
+                    clusters.push(cluster);
+                }
+            });
+
+            clusters.forEach(cluster => {
+                let composition = {};
+                cluster.forEach(atom => {
+                    const type = atom.dataset.type;
+                    composition[type] = (composition[type] || 0) + 1;
+                });
+
+                const isValid = validMolecules.some(valid => {
+                    const validKeys = Object.keys(valid);
+                    const compKeys = Object.keys(composition);
+                    if (validKeys.length !== compKeys.length) return false;
+                    return validKeys.every(key => valid[key] === composition[key]);
+                });
+
+                if (isValid) {
+                    mergeClusterIntoMolecule(cluster);
+                }
+            });
+        }
+
+        function mergeClusterIntoMolecule(cluster) {
+            // 결합 전 기존 결합 초기화
+            cluster.forEach(atom => {
+                const oldMol = findMoleculeByAtom(atom);
+                if (oldMol) {
+                    oldMol.bonds.forEach(b => b.remove());
+                    molecules = molecules.filter(m => m !== oldMol);
+                }
+            });
+
+            // [핵심 변경] 결합된 원자들을 수평 방향으로 정확히 80px 간격 정렬
+            const baseAtom = cluster[0];
+            const baseRect = baseAtom.getBoundingClientRect();
+            const baseX = baseRect.left;
+            const baseY = baseRect.top;
+
+            cluster.forEach((atom, index) => {
+                if (index > 0) {
+                    // 첫 번째 원자를 기준으로 우측으로 80px씩 누적 이동, 높이는 고정
+                    atom.style.left = `${baseX + (index * 80)}px`;
+                    atom.style.top = `${baseY}px`;
+                }
+            });
+
+            const newBonds = [];
+            for (let i = 0; i < cluster.length - 1; i++) {
+                const atom1 = cluster[i];
+                const atom2 = cluster[i + 1];
+
+                const bondContainer = document.createElement('div');
+                bondContainer.className = 'shared-bond';
+                bondContainer.dataset.from = atom1.dataset.id;
+                bondContainer.dataset.to = atom2.dataset.id;
+
+                const dot1 = document.createElement('div');
+                dot1.className = 'bond-dot d1';
+                const dot2 = document.createElement('div');
+                dot2.className = 'bond-dot d2';
+                
+                bondContainer.appendChild(dot1);
+                bondContainer.appendChild(dot2);
+                container.appendChild(bondContainer);
+
+                drawSharedDotsBetween(atom1, atom2, bondContainer);
+                newBonds.push(bondContainer);
+
+                // 정렬 방향이 무조건 가로(오른쪽)이므로 외곽 전자 숨김 처리 고정
+                hideDots(atom1, ['right', 'right-pair-1', 'right-pair-2']);
+                hideDots(atom2, ['left', 'left-pair-1', 'left-pair-2']);
+            }
+
+            const newMol = {
+                x: parseFloat(baseAtom.style.left),
+                y: parseFloat(baseAtom.style.top),
+                atoms: cluster,
+                bonds: newBonds
+            };
+
+            molecules.push(newMol);
+            updateBondDots(newMol);
+        }
+
+        function hideDots(atom, classes) {
+            classes.forEach(cls => {
+                const dot = atom.querySelector(`.${cls}`);
+                if (dot) dot.style.display = 'none';
+            });
+        }
     </script>
 </body>
 </html>
