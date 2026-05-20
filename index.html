@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>루이스 구조 공유 전자쌍 시뮬레이터 (대칭형 정렬 적용)</title>
+    <title>루이스 구조 분자 결합 시뮬레이터 (중심원자 정렬 반영)</title>
     <style>
         body {
             margin: 0;
@@ -55,7 +55,7 @@
             position: absolute;
             width: 8px;
             height: 8px;
-            background-color: #ff5722; /* 전자 전용 주황색 */
+            background-color: #ff5722; 
             border-radius: 50%;
         }
 
@@ -67,7 +67,6 @@
             pointer-events: none;
             z-index: 2;
         }
-        /* 결합 사이에 나란히 찍힐 점 2개 */
         .shared-bond .bond-dot {
             position: absolute;
             width: 8px;
@@ -99,7 +98,7 @@
 
     <div class="info">
         <h2>루이스 구조 공유 전자쌍 시뮬레이터</h2>
-        <p><b>CO₂ → OCO</b>, <b>CN₂ → NCN</b>, <b>NO₂ → ONO</b> 형태로 자동 대칭 정렬됩니다.</p>
+        <p>CO₂는 <b>O-C-O</b>, CN₂는 <b>N-C-N</b>, NO₂는 <b>O-N-O</b> 순서로 중심 원자가 가운데에 자동 정렬됩니다.</p>
     </div>
 
     <div id="container">
@@ -288,34 +287,37 @@
                 });
 
                 if (isValid) {
-                    // 결합 허가가 나면, 대칭 정렬 규칙 적용 함수 호출
-                    const sortedCluster = sortClusterForSymmetry(cluster, composition);
-                    mergeClusterIntoMolecule(sortedCluster);
+                    // [핵심 변경] 특정 분자일 때 중심원자가 가운데 오도록 결합 전 순서 재정렬
+                    cluster = reorderForCenterAtom(cluster, composition);
+                    mergeClusterIntoMolecule(cluster);
                 }
             });
         }
 
-        // [핵심 기능] 대칭 분자 구조 구조로 원소 배열을 치환하는 함수
-        function sortClusterForSymmetry(cluster, composition) {
-            // CO2 (C:1, O:2) -> O-C-O 정렬
-            if (composition['C'] === 1 && composition['O'] === 2 && cluster.length === 3) {
-                const center = cluster.find(a => a.dataset.type === 'C');
-                const sides = cluster.filter(a => a.dataset.type === 'O');
+        // 중심 원자(C 또는 N)가 3자리 배치 중 완벽히 2번째에 오도록 배열 순서 재정렬 함수
+        function reorderForCenterAtom(cluster, composition) {
+            if (cluster.length !== 3) return cluster;
+
+            // 1. CO2 구조 -> O-C-O 형태로 재정렬
+            if (composition['C'] === 1 && composition['O'] === 2) {
+                const center = cluster.find(atom => atom.dataset.type === 'C');
+                const sides = cluster.filter(atom => atom.dataset.type === 'O');
                 return [sides[0], center, sides[1]];
             }
-            // CN2 (C:1, N:2) -> N-C-N 정렬
-            if (composition['C'] === 1 && composition['N'] === 2 && cluster.length === 3) {
-                const center = cluster.find(a => a.dataset.type === 'C');
-                const sides = cluster.filter(a => a.dataset.type === 'N');
+            // 2. CN2 구조 -> N-C-N 형태로 재정렬
+            if (composition['C'] === 1 && composition['N'] === 2) {
+                const center = cluster.find(atom => atom.dataset.type === 'C');
+                const sides = cluster.filter(atom => atom.dataset.type === 'N');
                 return [sides[0], center, sides[1]];
             }
-            // NO2 (N:1, O:2) -> O-N-O 정렬
-            if (composition['N'] === 1 && composition['O'] === 2 && cluster.length === 3) {
-                const center = cluster.find(a => a.dataset.type === 'N');
-                const sides = cluster.filter(a => a.dataset.type === 'O');
+            // 3. NO2 구조 -> O-N-O 형태로 재정렬
+            if (composition['N'] === 1 && composition['O'] === 2) {
+                const center = cluster.find(atom => atom.dataset.type === 'N');
+                const sides = cluster.filter(atom => atom.dataset.type === 'O');
                 return [sides[0], center, sides[1]];
             }
-            return cluster; // 다른 분자는 기존 순서 유지
+
+            return cluster;
         }
 
         function mergeClusterIntoMolecule(cluster) {
@@ -327,7 +329,6 @@
                 }
             });
 
-            // 정렬이 완료된 순서(cluster)대로 수평 80px 배치 진행
             const baseAtom = cluster[0];
             const baseRect = baseAtom.getBoundingClientRect();
             const baseX = baseRect.left;
@@ -338,6 +339,8 @@
                     atom.style.left = `${baseX + (index * 80)}px`;
                     atom.style.top = `${baseY}px`;
                 }
+                // 정렬 과정에서 숨겨진 원자 내 잔여 점 초기화 리셋
+                atom.querySelectorAll('.dot').forEach(dot => dot.style.display = '');
             });
 
             const newBonds = [];
@@ -362,7 +365,7 @@
                 drawSharedDotsBetween(atom1, atom2, bondContainer);
                 newBonds.push(bondContainer);
 
-                // 수평 정렬 규칙에 기반하여 마주보는 안쪽 전자는 숨김
+                // 양방향 결합에 대응하는 내장 루이스 전자 도트 마스킹
                 hideDots(atom1, ['right', 'right-pair-1', 'right-pair-2']);
                 hideDots(atom2, ['left', 'left-pair-1', 'left-pair-2']);
             }
