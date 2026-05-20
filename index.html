@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>루이스 구조 드래그 시뮬레이션</title>
+    <title>루이스 구조 드래그 시뮬레이션 (C, N, O, F, Cl)</title>
     <style>
         body {
             margin: 0;
@@ -58,7 +58,7 @@
             position: absolute;
             width: 8px;
             height: 8px;
-            background-color: #ff5722; /* 전자는 눈에 띄는 주황색으로 설정 */
+            background-color: #ff5722; /* 전자는 눈에 띄는 주황색 */
             border-radius: 50%;
         }
 
@@ -72,20 +72,27 @@
         /* 비공유 전자쌍(Pair) 위치 */
         .top-pair-1    { top: -12px; left: 30px; }
         .top-pair-2    { top: -12px; left: 42px; }
+        
         .bottom-pair-1 { bottom: -12px; left: 30px; }
         .bottom-pair-2 { bottom: -12px; left: 42px; }
+        
+        .left-pair-1   { left: -12px; top: 30px; }
+        .left-pair-2   { left: -12px; top: 42px; }
+
+        .right-pair-1  { right: -12px; top: 30px; }
+        .right-pair-2  { right: -12px; top: 42px; }
     </style>
 </head>
 <body>
 
     <div class="info">
         <h2>루이스 구조 (Lewis Structure) 드래그</h2>
-        <p>원소 기호를 마우스로 클릭하고 드래그해 보세요.</p>
+        <p>원소 기호(C, N, O, F, Cl)를 마우스로 클릭하고 드래그해 보세요.</p>
     </div>
 
     <div id="container">
         <!-- 탄소 (C) : 최외각 전자 4개 -->
-        <div class="element" id="C" style="top: 45%; left: 25%;">
+        <div class="element" id="C" style="top: 45%; left: 15%;">
             C
             <div class="dot top"></div>
             <div class="dot bottom"></div>
@@ -93,8 +100,8 @@
             <div class="dot right"></div>
         </div>
 
-        <!-- 질소 (N) : 최외각 전자 5개 (1쌍 + 3홀전자) -->
-        <div class="element" id="N" style="top: 45%; left: 45%;">
+        <!-- 질소 (N) : 최외각 전자 5개 -->
+        <div class="element" id="N" style="top: 45%; left: 31%;">
             N
             <div class="dot top-pair-1"></div>
             <div class="dot top-pair-2"></div>
@@ -103,14 +110,38 @@
             <div class="dot right"></div>
         </div>
 
-        <!-- 산소 (O) : 최외각 전자 6개 (2쌍 + 2홀전자) -->
-        <div class="element" id="O" style="top: 45%; left: 65%;">
+        <!-- 산소 (O) : 최외각 전자 6개 -->
+        <div class="element" id="O" style="top: 45%; left: 47%;">
             O
             <div class="dot top-pair-1"></div>
             <div class="dot top-pair-2"></div>
             <div class="dot bottom-pair-1"></div>
             <div class="dot bottom-pair-2"></div>
             <div class="dot left"></div>
+            <div class="dot right"></div>
+        </div>
+
+        <!-- 플루오린 (F) : 최외각 전자 7개 (3쌍 + 1홀전자) -->
+        <div class="element" id="F" style="top: 45%; left: 63%;">
+            F
+            <div class="dot top-pair-1"></div>
+            <div class="dot top-pair-2"></div>
+            <div class="dot bottom-pair-1"></div>
+            <div class="dot bottom-pair-2"></div>
+            <div class="dot left-pair-1"></div>
+            <div class="dot left-pair-2"></div>
+            <div class="dot right"></div>
+        </div>
+
+        <!-- 염소 (Cl) : 최외각 전자 7개 (3쌍 + 1홀전자) -->
+        <div class="element" id="Cl" style="top: 45%; left: 79%;">
+            Cl
+            <div class="dot top-pair-1"></div>
+            <div class="dot top-pair-2"></div>
+            <div class="dot bottom-pair-1"></div>
+            <div class="dot bottom-pair-2"></div>
+            <div class="dot left-pair-1"></div>
+            <div class="dot left-pair-2"></div>
             <div class="dot right"></div>
         </div>
     </div>
@@ -146,8 +177,7 @@
             const x = e.clientX - offsetX;
             const y = e.clientY - offsetY;
 
-            // 점(Dot)들은 HTML 구조상 원소(.element)의 자식 요소(Child)로 들어가 있으므로,
-            // 원소의 부모 좌표(top, left)만 바꿔주면 내부의 점들은 자동으로 함께 움직입니다.
+            // 위치 적용
             currentElement.style.left = `${x}px`;
             currentElement.style.top = `${y}px`;
         });
